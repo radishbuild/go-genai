@@ -1298,78 +1298,328 @@ func generateContentConfigToVertex(ac *apiClient, fromObject map[string]any, par
 	return toObject, nil
 }
 
-func generateContentParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any) (toObject map[string]any, err error) {
+// generateContentConfigToVertexTyped converts typed GenerateContentConfig to Vertex AI format without marshalling to map first.
+func generateContentConfigToVertexTyped(ac *apiClient, config *GenerateContentConfig, parentObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
-		if err != nil {
-			return nil, err
-		}
-
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+	if config.SystemInstruction != nil {
+		setValueByPath(parentObject, []string{"systemInstruction"}, config.SystemInstruction)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
-		if err != nil {
-			return nil, err
-		}
-
-		fromContents, err = applyConverterToSlice(fromContents.([]any), contentToMldev)
-		if err != nil {
-			return nil, err
-		}
-
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+	if config.Temperature != nil {
+		setValueByPath(toObject, []string{"temperature"}, *config.Temperature)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		fromConfig, err = generateContentConfigToMldev(ac, fromConfig.(map[string]any), toObject)
+	if config.TopP != nil {
+		setValueByPath(toObject, []string{"topP"}, *config.TopP)
+	}
+
+	if config.TopK != nil {
+		setValueByPath(toObject, []string{"topK"}, *config.TopK)
+	}
+
+	if config.CandidateCount != 0 {
+		setValueByPath(toObject, []string{"candidateCount"}, config.CandidateCount)
+	}
+
+	if config.MaxOutputTokens != 0 {
+		setValueByPath(toObject, []string{"maxOutputTokens"}, config.MaxOutputTokens)
+	}
+
+	if config.StopSequences != nil {
+		setValueByPath(toObject, []string{"stopSequences"}, config.StopSequences)
+	}
+
+	if config.ResponseLogprobs {
+		setValueByPath(toObject, []string{"responseLogprobs"}, config.ResponseLogprobs)
+	}
+
+	if config.Logprobs != nil {
+		setValueByPath(toObject, []string{"logprobs"}, *config.Logprobs)
+	}
+
+	if config.PresencePenalty != nil {
+		setValueByPath(toObject, []string{"presencePenalty"}, *config.PresencePenalty)
+	}
+
+	if config.FrequencyPenalty != nil {
+		setValueByPath(toObject, []string{"frequencyPenalty"}, *config.FrequencyPenalty)
+	}
+
+	if config.Seed != nil {
+		setValueByPath(toObject, []string{"seed"}, *config.Seed)
+	}
+
+	if config.ResponseMIMEType != "" {
+		setValueByPath(toObject, []string{"responseMimeType"}, config.ResponseMIMEType)
+	}
+
+	if config.ResponseSchema != nil {
+		setValueByPath(toObject, []string{"responseSchema"}, config.ResponseSchema)
+	}
+
+	if config.ResponseJsonSchema != nil {
+		setValueByPath(toObject, []string{"responseJsonSchema"}, config.ResponseJsonSchema)
+	}
+
+	if config.RoutingConfig != nil {
+		setValueByPath(toObject, []string{"routingConfig"}, config.RoutingConfig)
+	}
+
+	if config.ModelSelectionConfig != nil {
+		setValueByPath(toObject, []string{"modelConfig"}, config.ModelSelectionConfig)
+	}
+
+	if config.SafetySettings != nil {
+		setValueByPath(parentObject, []string{"safetySettings"}, config.SafetySettings)
+	}
+
+	if config.Tools != nil {
+		setValueByPath(parentObject, []string{"tools"}, config.Tools)
+	}
+
+	if config.ToolConfig != nil {
+		setValueByPath(parentObject, []string{"toolConfig"}, config.ToolConfig)
+	}
+
+	if config.Labels != nil {
+		setValueByPath(parentObject, []string{"labels"}, config.Labels)
+	}
+
+	if config.CachedContent != "" {
+		cachedContent, err := tCachedContentName(ac, config.CachedContent)
 		if err != nil {
 			return nil, err
 		}
+		setValueByPath(parentObject, []string{"cachedContent"}, cachedContent)
+	}
 
-		setValueByPath(toObject, []string{"generationConfig"}, fromConfig)
+	if config.ResponseModalities != nil {
+		setValueByPath(toObject, []string{"responseModalities"}, config.ResponseModalities)
+	}
+
+	if config.MediaResolution != "" {
+		setValueByPath(toObject, []string{"mediaResolution"}, config.MediaResolution)
+	}
+
+	if config.SpeechConfig != nil {
+		setValueByPath(toObject, []string{"speechConfig"}, config.SpeechConfig)
+	}
+
+	if config.AudioTimestamp {
+		setValueByPath(toObject, []string{"audioTimestamp"}, config.AudioTimestamp)
+	}
+
+	if config.ThinkingConfig != nil {
+		setValueByPath(toObject, []string{"thinkingConfig"}, config.ThinkingConfig)
+	}
+
+	if config.ImageConfig != nil {
+		setValueByPath(toObject, []string{"imageConfig"}, config.ImageConfig)
+	}
+
+	if config.EnableEnhancedCivicAnswers != nil {
+		return nil, fmt.Errorf("enableEnhancedCivicAnswers parameter is not supported in Vertex AI")
 	}
 
 	return toObject, nil
 }
 
-func generateContentParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any) (toObject map[string]any, err error) {
+// generateContentConfigToMldevTyped converts typed GenerateContentConfig to MLDev format without marshalling to map first.
+func generateContentConfigToMldevTyped(ac *apiClient, config *GenerateContentConfig, parentObject map[string]any) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if config.SystemInstruction != nil {
+		// SystemInstruction needs contentToMldev conversion - marshal just this field
+		sysInstrMap, err := marshalToMap(config.SystemInstruction)
 		if err != nil {
 			return nil, err
 		}
+		converted, err := contentToMldev(sysInstrMap, toObject)
+		if err != nil {
+			return nil, err
+		}
+		setValueByPath(parentObject, []string{"systemInstruction"}, converted)
+	}
 
+	if config.Temperature != nil {
+		setValueByPath(toObject, []string{"temperature"}, *config.Temperature)
+	}
+
+	if config.TopP != nil {
+		setValueByPath(toObject, []string{"topP"}, *config.TopP)
+	}
+
+	if config.TopK != nil {
+		setValueByPath(toObject, []string{"topK"}, *config.TopK)
+	}
+
+	if config.CandidateCount != 0 {
+		setValueByPath(toObject, []string{"candidateCount"}, config.CandidateCount)
+	}
+
+	if config.MaxOutputTokens != 0 {
+		setValueByPath(toObject, []string{"maxOutputTokens"}, config.MaxOutputTokens)
+	}
+
+	if config.StopSequences != nil {
+		setValueByPath(toObject, []string{"stopSequences"}, config.StopSequences)
+	}
+
+	if config.ResponseLogprobs {
+		setValueByPath(toObject, []string{"responseLogprobs"}, config.ResponseLogprobs)
+	}
+
+	if config.Logprobs != nil {
+		setValueByPath(toObject, []string{"logprobs"}, *config.Logprobs)
+	}
+
+	if config.PresencePenalty != nil {
+		setValueByPath(toObject, []string{"presencePenalty"}, *config.PresencePenalty)
+	}
+
+	if config.FrequencyPenalty != nil {
+		setValueByPath(toObject, []string{"frequencyPenalty"}, *config.FrequencyPenalty)
+	}
+
+	if config.Seed != nil {
+		setValueByPath(toObject, []string{"seed"}, *config.Seed)
+	}
+
+	if config.ResponseMIMEType != "" {
+		setValueByPath(toObject, []string{"responseMimeType"}, config.ResponseMIMEType)
+	}
+
+	if config.ResponseSchema != nil {
+		setValueByPath(toObject, []string{"responseSchema"}, config.ResponseSchema)
+	}
+
+	if config.ResponseJsonSchema != nil {
+		setValueByPath(toObject, []string{"responseJsonSchema"}, config.ResponseJsonSchema)
+	}
+
+	if config.RoutingConfig != nil {
+		return nil, fmt.Errorf("routingConfig parameter is not supported in Gemini API")
+	}
+
+	if config.ModelSelectionConfig != nil {
+		return nil, fmt.Errorf("modelSelectionConfig parameter is not supported in Gemini API")
+	}
+
+	if config.SafetySettings != nil {
+		// Pass directly - struct preserves order
+		setValueByPath(parentObject, []string{"safetySettings"}, config.SafetySettings)
+	}
+
+	if config.Tools != nil {
+		// Pass directly - struct preserves order
+		setValueByPath(parentObject, []string{"tools"}, config.Tools)
+	}
+
+	if config.ToolConfig != nil {
+		// Pass directly - struct preserves order
+		setValueByPath(parentObject, []string{"toolConfig"}, config.ToolConfig)
+	}
+
+	if config.Labels != nil {
+		return nil, fmt.Errorf("labels parameter is not supported in Gemini API")
+	}
+
+	if config.CachedContent != "" {
+		cachedContent, err := tCachedContentName(ac, config.CachedContent)
+		if err != nil {
+			return nil, err
+		}
+		setValueByPath(parentObject, []string{"cachedContent"}, cachedContent)
+	}
+
+	if config.ResponseModalities != nil {
+		setValueByPath(toObject, []string{"responseModalities"}, config.ResponseModalities)
+	}
+
+	if config.MediaResolution != "" {
+		setValueByPath(toObject, []string{"mediaResolution"}, config.MediaResolution)
+	}
+
+	if config.SpeechConfig != nil {
+		setValueByPath(toObject, []string{"speechConfig"}, config.SpeechConfig)
+	}
+
+	if config.AudioTimestamp {
+		return nil, fmt.Errorf("audioTimestamp parameter is not supported in Gemini API")
+	}
+
+	if config.ThinkingConfig != nil {
+		setValueByPath(toObject, []string{"thinkingConfig"}, config.ThinkingConfig)
+	}
+
+	if config.ImageConfig != nil {
+		setValueByPath(toObject, []string{"imageConfig"}, config.ImageConfig)
+	}
+
+	if config.EnableEnhancedCivicAnswers != nil {
+		setValueByPath(toObject, []string{"enableEnhancedCivicAnswers"}, *config.EnableEnhancedCivicAnswers)
+	}
+
+	return toObject, nil
+}
+
+func generateContentParametersToMldev(ac *apiClient, model string, contents []*Content, config *GenerateContentConfig) (toObject map[string]any, err error) {
+	toObject = make(map[string]any)
+
+	if model != "" {
+		fromModel, err := tModel(ac, model)
+		if err != nil {
+			return nil, err
+		}
 		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentsMap, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
-
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err := applyConverterToSlice(contentsMap, contentToMldev)
+		if err != nil {
+			return nil, err
+		}
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		fromConfig, err = generateContentConfigToVertex(ac, fromConfig.(map[string]any), toObject)
+	if config != nil {
+		configResult, err := generateContentConfigToMldevTyped(ac, config, toObject)
 		if err != nil {
 			return nil, err
 		}
+		setValueByPath(toObject, []string{"generationConfig"}, configResult)
+	}
 
-		setValueByPath(toObject, []string{"generationConfig"}, fromConfig)
+	return toObject, nil
+}
+
+func generateContentParametersToVertex(ac *apiClient, model string, contents []*Content, config *GenerateContentConfig) (toObject map[string]any, err error) {
+	toObject = make(map[string]any)
+
+	if model != "" {
+		fromModel, err := tModel(ac, model)
+		if err != nil {
+			return nil, err
+		}
+		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+	}
+
+	if contents != nil {
+		// Pass contents directly - JSON marshaling of structs preserves field order
+		setValueByPath(toObject, []string{"contents"}, contents)
+	}
+
+	if config != nil {
+		configResult, err := generateContentConfigToVertexTyped(ac, config, toObject)
+		if err != nil {
+			return nil, err
+		}
+		setValueByPath(toObject, []string{"generationConfig"}, configResult)
 	}
 
 	return toObject, nil
@@ -4057,11 +4307,6 @@ type Models struct {
 }
 
 func (m Models) generateContent(ctx context.Context, model string, contents []*Content, config *GenerateContentConfig) (*GenerateContentResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4074,16 +4319,15 @@ func (m Models) generateContent(ctx context.Context, model string, contents []*C
 	var response = new(GenerateContentResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateContentParametersToVertex
+		body, err = generateContentParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromVertex
 	} else {
-		toConverter = generateContentParametersToMldev
+		body, err = generateContentParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -4128,11 +4372,6 @@ func (m Models) generateContent(ctx context.Context, model string, contents []*C
 }
 
 func (m Models) generateContentStream(ctx context.Context, model string, contents []*Content, config *GenerateContentConfig) iter.Seq2[*GenerateContentResponse, error] {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4144,16 +4383,15 @@ func (m Models) generateContentStream(ctx context.Context, model string, content
 	}
 	var rs responseStream[GenerateContentResponse]
 	var fromConverter func(map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateContentParametersToVertex
+		body, err = generateContentParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromVertex
 	} else {
-		toConverter = generateContentParametersToMldev
+		body, err = generateContentParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil)
 	if err != nil {
 		return yieldErrorAndEndIterator[GenerateContentResponse](err)
 	}
@@ -5349,3 +5587,4 @@ func (m Models) GenerateVideosFromSource(ctx context.Context, model string, sour
 	// Rely on backend validation for combinations of prompt, image, and video.
 	return m.generateVideos(ctx, model, nil, nil, nil, source, config)
 }
+

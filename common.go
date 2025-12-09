@@ -379,6 +379,39 @@ func deepMarshal(input any, output *map[string]any) error {
 	return nil
 }
 
+// marshalToMap converts a single struct to map[string]any using JSON marshaling.
+// Unlike deepMarshal, this returns the map directly instead of writing to a pointer.
+func marshalToMap(input any) (map[string]any, error) {
+	if input == nil {
+		return nil, nil
+	}
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("marshalToMap: unable to marshal input: %w", err)
+	}
+	var output map[string]any
+	if err := json.Unmarshal(inputBytes, &output); err != nil {
+		return nil, fmt.Errorf("marshalToMap: unable to unmarshal input: %w", err)
+	}
+	return output, nil
+}
+
+// marshalSliceToMaps converts a slice of structs to a slice of map[string]any.
+func marshalSliceToMaps[T any](input []T) ([]any, error) {
+	if input == nil {
+		return nil, nil
+	}
+	result := make([]any, len(input))
+	for i, item := range input {
+		m, err := marshalToMap(item)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = m
+	}
+	return result, nil
+}
+
 func deepCopy[T any](original T, copied *T) error {
 	bytes, err := json.Marshal(original)
 	if err != nil {
