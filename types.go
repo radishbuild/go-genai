@@ -90,16 +90,6 @@ const (
 	TypeNULL Type = "NULL"
 )
 
-// The mode of the predictor to be used in dynamic retrieval.
-type Mode string
-
-const (
-	// Always trigger retrieval.
-	ModeUnspecified Mode = "MODE_UNSPECIFIED"
-	// Run retrieval only when system decides it is necessary.
-	ModeDynamic Mode = "MODE_DYNAMIC"
-)
-
 // The API spec that the external API implements. This enum is not supported in Gemini
 // API.
 type APISpec string
@@ -170,16 +160,69 @@ const (
 	PhishBlockThresholdBlockOnlyExtremelyHigh PhishBlockThreshold = "BLOCK_ONLY_EXTREMELY_HIGH"
 )
 
-// The level of thoughts tokens that the model should generate.
+// Specifies the function Behavior. Currently only supported by the BidiGenerateContent
+// method. This enum is not supported in Vertex AI.
+type Behavior string
+
+const (
+	// This value is unused.
+	BehaviorUnspecified Behavior = "UNSPECIFIED"
+	// If set, the system will wait to receive the function response before continuing the
+	// conversation.
+	BehaviorBlocking Behavior = "BLOCKING"
+	// If set, the system will not wait to receive the function response. Instead, it will
+	// attempt to handle function responses as they become available while maintaining the
+	// conversation between the user and the model.
+	BehaviorNonBlocking Behavior = "NON_BLOCKING"
+)
+
+// The mode of the predictor to be used in dynamic retrieval.
+type DynamicRetrievalConfigMode string
+
+const (
+	// Always trigger retrieval.
+	DynamicRetrievalConfigModeUnspecified DynamicRetrievalConfigMode = "MODE_UNSPECIFIED"
+	// Run retrieval only when system decides it is necessary.
+	DynamicRetrievalConfigModeDynamic DynamicRetrievalConfigMode = "MODE_DYNAMIC"
+)
+
+// Function calling mode.
+type FunctionCallingConfigMode string
+
+const (
+	// Unspecified function calling mode. This value should not be used.
+	FunctionCallingConfigModeUnspecified FunctionCallingConfigMode = "MODE_UNSPECIFIED"
+	// Default model behavior, model decides to predict either function calls or natural
+	// language response.
+	FunctionCallingConfigModeAuto FunctionCallingConfigMode = "AUTO"
+	// Model is constrained to always predicting function calls only. If "allowed_function_names"
+	// are set, the predicted function calls will be limited to any one of "allowed_function_names",
+	// else the predicted function calls will be any one of the provided "function_declarations".
+	FunctionCallingConfigModeAny FunctionCallingConfigMode = "ANY"
+	// Model will not predict any function calls. Model behavior is same as when not passing
+	// any function declarations.
+	FunctionCallingConfigModeNone FunctionCallingConfigMode = "NONE"
+	// Model is constrained to predict either function calls or natural language response.
+	// If "allowed_function_names" are set, the predicted function calls will be limited
+	// to any one of "allowed_function_names", else the predicted function calls will be
+	// any one of the provided "function_declarations".
+	FunctionCallingConfigModeValidated FunctionCallingConfigMode = "VALIDATED"
+)
+
+// The number of thoughts tokens that the model should generate.
 type ThinkingLevel string
 
 const (
-	// Default value.
+	// Unspecified thinking level.
 	ThinkingLevelUnspecified ThinkingLevel = "THINKING_LEVEL_UNSPECIFIED"
 	// Low thinking level.
 	ThinkingLevelLow ThinkingLevel = "LOW"
+	// Medium thinking level.
+	ThinkingLevelMedium ThinkingLevel = "MEDIUM"
 	// High thinking level.
 	ThinkingLevelHigh ThinkingLevel = "HIGH"
+	// MINIMAL thinking level.
+	ThinkingLevelMinimal ThinkingLevel = "MINIMAL"
 )
 
 // Harm category.
@@ -283,6 +326,10 @@ const (
 	FinishReasonImageProhibitedContent FinishReason = "IMAGE_PROHIBITED_CONTENT"
 	// The model was expected to generate an image, but none was generated.
 	FinishReasonNoImage FinishReason = "NO_IMAGE"
+	// Image generation stopped because the generated image may be a recitation from a source.
+	FinishReasonImageRecitation FinishReason = "IMAGE_RECITATION"
+	// Image generation stopped for a reason not otherwise specified.
+	FinishReasonImageOther FinishReason = "IMAGE_OTHER"
 )
 
 // Harm probability levels in the content.
@@ -490,6 +537,8 @@ const (
 	PartMediaResolutionLevelMediaResolutionMedium PartMediaResolutionLevel = "MEDIA_RESOLUTION_MEDIUM"
 	// Media resolution set to high.
 	PartMediaResolutionLevelMediaResolutionHigh PartMediaResolutionLevel = "MEDIA_RESOLUTION_HIGH"
+	// Media resolution set to ultra high.
+	PartMediaResolutionLevelMediaResolutionUltraHigh PartMediaResolutionLevel = "MEDIA_RESOLUTION_ULTRA_HIGH"
 )
 
 // Options for feature selection preference.
@@ -502,31 +551,6 @@ const (
 	FeatureSelectionPreferencePrioritizeCost    FeatureSelectionPreference = "PRIORITIZE_COST"
 )
 
-// Defines the function behavior. Defaults to `BLOCKING`.
-type Behavior string
-
-const (
-	// This value is unused.
-	BehaviorUnspecified Behavior = "UNSPECIFIED"
-	// If set, the system will wait to receive the function response before continuing the
-	// conversation.
-	BehaviorBlocking Behavior = "BLOCKING"
-	// If set, the system will not wait to receive the function response. Instead, it will
-	// attempt to handle function responses as they become available while maintaining the
-	// conversation between the user and the model.
-	BehaviorNonBlocking Behavior = "NON_BLOCKING"
-)
-
-// Config for the dynamic retrieval config mode.
-type DynamicRetrievalConfigMode string
-
-const (
-	// Always trigger retrieval.
-	DynamicRetrievalConfigModeUnspecified DynamicRetrievalConfigMode = "MODE_UNSPECIFIED"
-	// Run retrieval only when system decides it is necessary.
-	DynamicRetrievalConfigModeDynamic DynamicRetrievalConfigMode = "MODE_DYNAMIC"
-)
-
 // The environment being operated.
 type Environment string
 
@@ -535,29 +559,6 @@ const (
 	EnvironmentUnspecified Environment = "ENVIRONMENT_UNSPECIFIED"
 	// Operates in a web browser.
 	EnvironmentBrowser Environment = "ENVIRONMENT_BROWSER"
-)
-
-// Config for the function calling config mode.
-type FunctionCallingConfigMode string
-
-const (
-	// The function calling config mode is unspecified. Should not be used.
-	FunctionCallingConfigModeUnspecified FunctionCallingConfigMode = "MODE_UNSPECIFIED"
-	// Default model behavior, model decides to predict either function calls or natural
-	// language response.
-	FunctionCallingConfigModeAuto FunctionCallingConfigMode = "AUTO"
-	// Model is constrained to always predicting function calls only. If "allowed_function_names"
-	// are set, the predicted function calls will be limited to any one of "allowed_function_names",
-	// else the predicted function calls will be any one of the provided "function_declarations".
-	FunctionCallingConfigModeAny FunctionCallingConfigMode = "ANY"
-	// Model will not predict any function calls. Model behavior is same as when not passing
-	// any function declarations.
-	FunctionCallingConfigModeNone FunctionCallingConfigMode = "NONE"
-	// Model decides to predict either a function call or a natural language response, but
-	// will validate function calls with constrained decoding. If "allowed_function_names"
-	// are set, the predicted function call will be limited to any one of "allowed_function_names",
-	// else the predicted function call will be any one of the provided "function_declarations".
-	FunctionCallingConfigModeValidated FunctionCallingConfigMode = "VALIDATED"
 )
 
 // Enum that controls the safety filter level for objectionable content.
@@ -775,6 +776,18 @@ const (
 	MediaModalityAudio MediaModality = "AUDIO"
 	// Document, e.g. PDF.
 	MediaModalityDocument MediaModality = "DOCUMENT"
+)
+
+// The type of the VAD signal.
+type VADSignalType string
+
+const (
+	// The default is VAD_SIGNAL_TYPE_UNSPECIFIED.
+	VADSignalTypeUnspecified VADSignalType = "VAD_SIGNAL_TYPE_UNSPECIFIED"
+	// Start of sentence signal.
+	VADSignalTypeSos VADSignalType = "VAD_SIGNAL_TYPE_SOS"
+	// End of sentence signal.
+	VADSignalTypeEos VADSignalType = "VAD_SIGNAL_TYPE_EOS"
 )
 
 // Start of speech sensitivity.
@@ -1414,60 +1427,6 @@ type ModelSelectionConfig struct {
 	FeatureSelectionPreference FeatureSelectionPreference `json:"featureSelectionPreference,omitempty"`
 }
 
-// Defines a function that the model can generate JSON inputs for.
-// The inputs are based on `OpenAPI 3.0 specifications
-// <https://spec.openapis.org/oas/v3.0.3>`_.
-type FunctionDeclaration struct {
-	// Optional. Defines the function behavior.
-	Behavior Behavior `json:"behavior,omitempty"`
-	// Optional. Description and purpose of the function. Model uses it to decide how and
-	// whether to call the function.
-	Description string `json:"description,omitempty"`
-	// Required. The name of the function to call. Must start with a letter or an underscore.
-	// Must be a-z, A-Z, 0-9, or contain underscores, dots and dashes, with a maximum length
-	// of 64.
-	Name string `json:"name,omitempty"`
-	// Optional. Describes the parameters to this function in JSON Schema Object format.
-	// Reflects the Open API 3.03 Parameter Object. string Key: the name of the parameter.
-	// Parameter names are case sensitive. Schema Value: the Schema defining the type used
-	// for the parameter. For function with no parameters, this can be left unset. Parameter
-	// names must start with a letter or an underscore and must only contain chars a-z,
-	// A-Z, 0-9, or underscores with a maximum length of 64. Example with 1 required and
-	// 1 optional parameter: type: OBJECT properties: param1: type: STRING param2: type:
-	// INTEGER required: - param1
-	Parameters *Schema `json:"parameters,omitempty"`
-	// Optional. Describes the parameters to the function in JSON Schema format. The schema
-	// must describe an object where the properties are the parameters to the function.
-	// For example: ``` { "type": "object", "properties": { "name": { "type": "string" },
-	// "age": { "type": "integer" } }, "additionalProperties": false, "required": ["name",
-	// "age"], "propertyOrdering": ["name", "age"] } ``` This field is mutually exclusive
-	// with `parameters`.
-	ParametersJsonSchema any `json:"parametersJsonSchema,omitempty"`
-	// Optional. Describes the output from this function in JSON Schema format. Reflects
-	// the Open API 3.03 Response Object. The Schema defines the type used for the response
-	// value of the function.
-	Response *Schema `json:"response,omitempty"`
-	// Optional. Describes the output from this function in JSON Schema format. The value
-	// specified by the schema is the response value of the function. This field is mutually
-	// exclusive with `response`.
-	ResponseJsonSchema any `json:"responseJsonSchema,omitempty"`
-}
-
-// Describes the options to customize dynamic retrieval.
-type DynamicRetrievalConfig struct {
-	// Optional. The mode of the predictor to be used in dynamic retrieval.
-	Mode DynamicRetrievalConfigMode `json:"mode,omitempty"`
-	// Optional. The threshold to be used in dynamic retrieval. If empty, a system default
-	// value is used.
-	DynamicThreshold *float32 `json:"dynamicThreshold,omitempty"`
-}
-
-// Tool to retrieve public web data for grounding, powered by Google.
-type GoogleSearchRetrieval struct {
-	// Optional. Specifies the dynamic retrieval configuration for the given source.
-	DynamicRetrievalConfig *DynamicRetrievalConfig `json:"dynamicRetrievalConfig,omitempty"`
-}
-
 // Tool to support computer use.
 type ComputerUse struct {
 	// Optional. Required. The environment being operated.
@@ -1770,6 +1729,48 @@ type EnterpriseWebSearch struct {
 	BlockingConfidence PhishBlockThreshold `json:"blockingConfidence,omitempty"`
 }
 
+// Structured representation of a function declaration as defined by the [OpenAPI 3.0
+// specification](https://spec.openapis.org/oas/v3.0.3). Included in this declaration
+// are the function name, description, parameters and response type. This FunctionDeclaration
+// is a representation of a block of code that can be used as a `Tool` by the model
+// and executed by the client.
+type FunctionDeclaration struct {
+	// Optional. Description and purpose of the function. Model uses it to decide how and
+	// whether to call the function.
+	Description string `json:"description,omitempty"`
+	// Required. The name of the function to call. Must start with a letter or an underscore.
+	// Must be a-z, A-Z, 0-9, or contain underscores, dots and dashes, with a maximum length
+	// of 64.
+	Name string `json:"name,omitempty"`
+	// Optional. Describes the parameters to this function in JSON Schema Object format.
+	// Reflects the Open API 3.03 Parameter Object. string Key: the name of the parameter.
+	// Parameter names are case sensitive. Schema Value: the Schema defining the type used
+	// for the parameter. For function with no parameters, this can be left unset. Parameter
+	// names must start with a letter or an underscore and must only contain chars a-z,
+	// A-Z, 0-9, or underscores with a maximum length of 64. Example with 1 required and
+	// 1 optional parameter: type: OBJECT properties: param1: type: STRING param2: type:
+	// INTEGER required: - param1
+	Parameters *Schema `json:"parameters,omitempty"`
+	// Optional. Describes the parameters to the function in JSON Schema format. The schema
+	// must describe an object where the properties are the parameters to the function.
+	// For example: ``` { "type": "object", "properties": { "name": { "type": "string" },
+	// "age": { "type": "integer" } }, "additionalProperties": false, "required": ["name",
+	// "age"], "propertyOrdering": ["name", "age"] } ``` This field is mutually exclusive
+	// with `parameters`.
+	ParametersJsonSchema any `json:"parametersJsonSchema,omitempty"`
+	// Optional. Describes the output from this function in JSON Schema format. Reflects
+	// the Open API 3.03 Response Object. The Schema defines the type used for the response
+	// value of the function.
+	Response *Schema `json:"response,omitempty"`
+	// Optional. Describes the output from this function in JSON Schema format. The value
+	// specified by the schema is the response value of the function. This field is mutually
+	// exclusive with `response`.
+	ResponseJsonSchema any `json:"responseJsonSchema,omitempty"`
+	// Optional. Specifies the function Behavior. Currently only supported by the BidiGenerateContent
+	// method. This field is not supported in Vertex AI.
+	Behavior Behavior `json:"behavior,omitempty"`
+}
+
 // Tool to retrieve public maps data for grounding, powered by Google.
 type GoogleMaps struct {
 	// The authentication config to access the API. Only API key is supported. This field
@@ -1853,20 +1854,31 @@ type GoogleSearch struct {
 	TimeRangeFilter *Interval `json:"timeRangeFilter,omitempty"`
 }
 
+// Describes the options to customize dynamic retrieval.
+type DynamicRetrievalConfig struct {
+	// Optional. The threshold to be used in dynamic retrieval. If empty, a system default
+	// value is used.
+	DynamicThreshold *float32 `json:"dynamicThreshold,omitempty"`
+	// The mode of the predictor to be used in dynamic retrieval.
+	Mode DynamicRetrievalConfigMode `json:"mode,omitempty"`
+}
+
+// Tool to retrieve public web data for grounding, powered by Google.
+type GoogleSearchRetrieval struct {
+	// Specifies the dynamic retrieval configuration for the given source.
+	DynamicRetrievalConfig *DynamicRetrievalConfig `json:"dynamicRetrievalConfig,omitempty"`
+}
+
 // Tool to support URL context.
 type URLContext struct {
 }
 
 // Tool details of a tool that the model may use to generate a response.
 type Tool struct {
-	// Optional. List of function declarations that the tool supports.
-	FunctionDeclarations []*FunctionDeclaration `json:"functionDeclarations,omitempty"`
 	// Optional. Retrieval tool type. System will always execute the provided retrieval
 	// tool(s) to get external knowledge to answer the prompt. Retrieval results are presented
 	// to the model for generation. This field is not supported in Gemini API.
 	Retrieval *Retrieval `json:"retrieval,omitempty"`
-	// Optional. Specialized retrieval tool that is powered by Google Search.
-	GoogleSearchRetrieval *GoogleSearchRetrieval `json:"googleSearchRetrieval,omitempty"`
 	// Optional. Tool to support the model interacting directly with the
 	// computer. If enabled, it automatically populates computer-use specific
 	// Function Declarations.
@@ -1878,27 +1890,22 @@ type Tool struct {
 	// Optional. Tool to support searching public web data, powered by Vertex AI Search
 	// and Sec4 compliance. This field is not supported in Gemini API.
 	EnterpriseWebSearch *EnterpriseWebSearch `json:"enterpriseWebSearch,omitempty"`
+	// Optional. Function tool type. One or more function declarations to be passed to the
+	// model along with the current user query. Model may decide to call a subset of these
+	// functions by populating FunctionCall in the response. User should provide a FunctionResponse
+	// for each function call in the next turn. Based on the function responses, Model will
+	// generate the final response back to the user. Maximum 512 function declarations can
+	// be provided.
+	FunctionDeclarations []*FunctionDeclaration `json:"functionDeclarations,omitempty"`
 	// Optional. GoogleMaps tool type. Tool to support Google Maps in Model.
 	GoogleMaps *GoogleMaps `json:"googleMaps,omitempty"`
 	// Optional. GoogleSearch tool type. Tool to support Google Search in Model. Powered
 	// by Google.
 	GoogleSearch *GoogleSearch `json:"googleSearch,omitempty"`
+	// Optional. Specialized retrieval tool that is powered by Google Search.
+	GoogleSearchRetrieval *GoogleSearchRetrieval `json:"googleSearchRetrieval,omitempty"`
 	// Optional. Tool to support URL context retrieval.
 	URLContext *URLContext `json:"urlContext,omitempty"`
-}
-
-// Function calling config.
-type FunctionCallingConfig struct {
-	// Optional. Function calling mode.
-	Mode FunctionCallingConfigMode `json:"mode,omitempty"`
-	// Optional. Function names to call. Only set when the Mode is ANY. Function names should
-	// match [FunctionDeclaration.Name]. With mode set to ANY, model will predict a function
-	// call from the set of function names provided.
-	AllowedFunctionNames []string `json:"allowedFunctionNames,omitempty"`
-	// Optional. When set to true, arguments of a single function call will be streamed
-	// out in multiple parts/contents/responses. Partial parameter results will be returned
-	// in the [FunctionCall.partial_args] field. This field is not supported in Gemini API.
-	StreamFunctionCallArguments *bool `json:"streamFunctionCallArguments,omitempty"`
 }
 
 // An object that represents a latitude/longitude pair.
@@ -1921,13 +1928,27 @@ type RetrievalConfig struct {
 	LanguageCode string `json:"languageCode,omitempty"`
 }
 
+// Function calling config.
+type FunctionCallingConfig struct {
+	// Optional. Function names to call. Only set when the Mode is ANY. Function names should
+	// match [FunctionDeclaration.Name]. With mode set to ANY, model will predict a function
+	// call from the set of function names provided.
+	AllowedFunctionNames []string `json:"allowedFunctionNames,omitempty"`
+	// Optional. Function calling mode.
+	Mode FunctionCallingConfigMode `json:"mode,omitempty"`
+	// Optional. When set to true, arguments of a single function call will be streamed
+	// out in multiple parts/contents/responses. Partial parameter results will be returned
+	// in the [FunctionCall.partial_args] field. This field is not supported in Gemini API.
+	StreamFunctionCallArguments *bool `json:"streamFunctionCallArguments,omitempty"`
+}
+
 // Tool config.
 // This config is shared for all tools provided in the request.
 type ToolConfig struct {
-	// Optional. Function calling config.
-	FunctionCallingConfig *FunctionCallingConfig `json:"functionCallingConfig,omitempty"`
 	// Optional. Retrieval config.
 	RetrievalConfig *RetrievalConfig `json:"retrievalConfig,omitempty"`
+	// Optional. Function calling config.
+	FunctionCallingConfig *FunctionCallingConfig `json:"functionCallingConfig,omitempty"`
 }
 
 // ReplicatedVoiceConfig is used to configure replicated voice.
@@ -1960,10 +1981,10 @@ type SpeakerVoiceConfig struct {
 	VoiceConfig *VoiceConfig `json:"voiceConfig,omitempty"`
 }
 
-// The configuration for the multi-speaker setup. This data type is not supported in
-// Vertex AI.
+// Configuration for a multi-speaker text-to-speech request.
 type MultiSpeakerVoiceConfig struct {
-	// Required. All the enabled speaker voices.
+	// Required. A list of configurations for the voices of the speakers. Exactly two speaker
+	// voice configurations must be provided.
 	SpeakerVoiceConfigs []*SpeakerVoiceConfig `json:"speakerVoiceConfigs,omitempty"`
 }
 
@@ -1972,8 +1993,8 @@ type SpeechConfig struct {
 	VoiceConfig *VoiceConfig `json:"voiceConfig,omitempty"`
 	// Optional. Language code (ISO 639. e.g. en-US) for the speech synthesization.
 	LanguageCode string `json:"languageCode,omitempty"`
-	// Optional. The configuration for the multi-speaker setup. It is mutually exclusive
-	// with the voice_config field. This field is not supported in Vertex AI.
+	// The configuration for a multi-speaker text-to-speech request. This field is mutually
+	// exclusive with `voice_config`.
 	MultiSpeakerVoiceConfig *MultiSpeakerVoiceConfig `json:"multiSpeakerVoiceConfig,omitempty"`
 }
 
@@ -1984,7 +2005,7 @@ type ThinkingConfig struct {
 	IncludeThoughts bool `json:"includeThoughts,omitempty"`
 	// Optional. Indicates the thinking budget in tokens.
 	ThinkingBudget *int32 `json:"thinkingBudget,omitempty"`
-	// Optional. The level of thoughts tokens that the model should generate.
+	// Optional. The number of thoughts tokens that the model should generate.
 	ThinkingLevel ThinkingLevel `json:"thinkingLevel,omitempty"`
 }
 
@@ -1997,6 +2018,9 @@ type ImageConfig struct {
 	// values are `1K`, `2K`, `4K`. If not specified, the model will use default
 	// value `1K`.
 	ImageSize string `json:"imageSize,omitempty"`
+	// Optional. Controls the generation of people. Supported values are:
+	// ALLOW_ALL, ALLOW_ADULT, ALLOW_NONE.
+	PersonGeneration string `json:"personGeneration,omitempty"`
 	// Optional. MIME type of the generated image. This field is not
 	// supported in Gemini API.
 	OutputMIMEType string `json:"outputMimeType,omitempty"`
@@ -6000,6 +6024,11 @@ type LiveServerSessionResumptionUpdate struct {
 	LastConsumedClientMessageIndex int64 `json:"lastConsumedClientMessageIndex,omitempty,string"`
 }
 
+type VoiceActivityDetectionSignal struct {
+	// Optional. The type of the VAD signal.
+	VADSignalType VADSignalType `json:"vadSignalType,omitempty"`
+}
+
 // Response message for API call.
 type LiveServerMessage struct {
 	// Optional. Sent in response to a `LiveClientSetup` message from the client.
@@ -6018,6 +6047,8 @@ type LiveServerMessage struct {
 	GoAway *LiveServerGoAway `json:"goAway,omitempty"`
 	// Optional. Update of the session resumption state.
 	SessionResumptionUpdate *LiveServerSessionResumptionUpdate `json:"sessionResumptionUpdate,omitempty"`
+	// Optional. Voice activity detection signal.
+	VoiceActivityDetectionSignal *VoiceActivityDetectionSignal `json:"voiceActivityDetectionSignal,omitempty"`
 }
 
 // Configures automatic detection of activity.
@@ -6134,6 +6165,10 @@ type LiveClientSetup struct {
 	// proactively to
 	// the input and to ignore irrelevant input.
 	Proactivity *ProactivityConfig `json:"proactivity,omitempty"`
+	// Optional. Configures the explicit VAD signal. If enabled, the client will send
+	// vad_signal to indicate the start and end of speech. This allows the server
+	// to process the audio more efficiently.
+	ExplicitVADSignal bool `json:"explicitVadSignal,omitempty"`
 }
 
 // Incremental update of the current conversation delivered from the client.
@@ -6298,6 +6333,10 @@ type LiveConnectConfig struct {
 	// proactively to
 	// the input and to ignore irrelevant input.
 	Proactivity *ProactivityConfig `json:"proactivity,omitempty"`
+	// Optional. Configures the explicit VAD signal. If enabled, the client will send
+	// vad_signal to indicate the start and end of speech. This allows the server
+	// to process the audio more efficiently.
+	ExplicitVADSignal *bool `json:"explicitVadSignal,omitempty"`
 }
 
 // Parameters for sending client content to the live API.
@@ -6330,6 +6369,93 @@ func (p LiveSendToolResponseParameters) toLiveClientMessage() *LiveClientMessage
 	return &LiveClientMessage{
 		ToolResponse: &LiveClientToolResponse{FunctionResponses: p.FunctionResponses},
 	}
+}
+
+// Config for auth_tokens.create parameters.
+type AuthToken struct {
+	// Optional. The name of the auth token.
+	Name string `json:"name,omitempty"`
+}
+
+// Config for LiveConnectConstraints for Auth Token creation.
+type LiveConnectConstraints struct {
+	// Optional. ID of the model to configure in the ephemeral token for Live API.
+	// For a list of models, see `Gemini models
+	// <https://ai.google.dev/gemini-api/docs/models>`.
+	Model string `json:"model,omitempty"`
+	// Optional. Configuration specific to Live API connections created using this token.
+	Config *LiveConnectConfig `json:"config,omitempty"`
+}
+
+// Optional parameters.
+type CreateAuthTokenConfig struct {
+	// Optional. Used to override HTTP request options.
+	HTTPOptions *HTTPOptions `json:"httpOptions,omitempty"`
+	// Optional. An optional time after which, when using the resulting token,
+	// messages in Live API sessions will be rejected. (Gemini may
+	// preemptively close the session after this time.)
+	// If not set then this defaults to 30 minutes in the future. If set, this
+	// value must be less than 20 hours in the future.
+	ExpireTime time.Time `json:"expireTime,omitempty"`
+	// Optional. The time after which new Live API sessions using the token
+	// resulting from this request will be rejected.
+	// If not set this defaults to 60 seconds in the future. If set, this value
+	// must be less than 20 hours in the future.
+	NewSessionExpireTime time.Time `json:"newSessionExpireTime,omitempty"`
+	// Optional. The number of times the token can be used. If this value is zero
+	// then no limit is applied. Default is 1. Resuming a Live API session does
+	// not count as a use.
+	Uses *int32 `json:"uses,omitempty"`
+	// Optional. Configuration specific to Live API connections created using this token.
+	LiveConnectConstraints *LiveConnectConstraints `json:"liveConnectConstraints,omitempty"`
+	// Optional. Additional fields to lock in the effective LiveConnectParameters.
+	LockAdditionalFields []string `json:"lockAdditionalFields,omitempty"`
+}
+
+func (c *CreateAuthTokenConfig) UnmarshalJSON(data []byte) error {
+	type Alias CreateAuthTokenConfig
+	aux := &struct {
+		ExpireTime           *time.Time `json:"expireTime,omitempty"`
+		NewSessionExpireTime *time.Time `json:"newSessionExpireTime,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if !reflect.ValueOf(aux.ExpireTime).IsZero() {
+		c.ExpireTime = time.Time(*aux.ExpireTime)
+	}
+
+	if !reflect.ValueOf(aux.NewSessionExpireTime).IsZero() {
+		c.NewSessionExpireTime = time.Time(*aux.NewSessionExpireTime)
+	}
+
+	return nil
+}
+
+func (c *CreateAuthTokenConfig) MarshalJSON() ([]byte, error) {
+	type Alias CreateAuthTokenConfig
+	aux := &struct {
+		ExpireTime           *time.Time `json:"expireTime,omitempty"`
+		NewSessionExpireTime *time.Time `json:"newSessionExpireTime,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(c),
+	}
+
+	if !reflect.ValueOf(c.ExpireTime).IsZero() {
+		aux.ExpireTime = (*time.Time)(&c.ExpireTime)
+	}
+
+	if !reflect.ValueOf(c.NewSessionExpireTime).IsZero() {
+		aux.NewSessionExpireTime = (*time.Time)(&c.NewSessionExpireTime)
+	}
+
+	return json.Marshal(aux)
 }
 
 // Local tokenizer count tokens result.

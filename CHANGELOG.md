@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.40.0](https://github.com/googleapis/go-genai/compare/v1.39.0...v1.40.0) (2025-12-16)
+
+
+### Features
+
+* Add minimal and medium thinking levels. ([a7c0ed8](https://github.com/googleapis/go-genai/commit/a7c0ed8b1fcade06ffcc62a91344e36e56d17f37))
+* Add ultra high resolution to the media resolution in Parts. ([47b89eb](https://github.com/googleapis/go-genai/commit/47b89ebb0cb9531bd440afb15df14a9668142f72))
+* ephemeral token support in go ([7515bbe](https://github.com/googleapis/go-genai/commit/7515bbef37d86ac0d695c11d81c31a42cb330e7e))
+* support multi speaker for Vertex AI ([457541d](https://github.com/googleapis/go-genai/commit/457541d1839e37fe7bd588462ecb42b670a1ec1c))
+
+## [1.39.0](https://github.com/googleapis/go-genai/compare/v1.38.0...v1.39.0) (2025-12-10)
+
+
+### Features
+
+* Add enableEnhancedCivicAnswers feature in GenerateContentConfig ([dd25df7](https://github.com/googleapis/go-genai/commit/dd25df730c6060e39ab3ba9d7749d8fc75d6c8b7))
+* Add IMAGE_RECITATION and IMAGE_OTHER enum values to FinishReason ([33aa4f2](https://github.com/googleapis/go-genai/commit/33aa4f28afcea135e8f8947341ff334afc85fe70))
+* Add voice activity detection signal. ([326059c](https://github.com/googleapis/go-genai/commit/326059c108bdc628bf35d75837b1bb23b1b1fa99))
+
+## [1.38.0](https://github.com/googleapis/go-genai/compare/v1.37.0...v1.38.0) (2025-12-08)
+
+
+### Features
+
+* Support ReplicatedVoiceConfig ([fd19393](https://github.com/googleapis/go-genai/commit/fd1939328de25eda7452630c06ef57f2bcc0d5f9))
+
 ## [1.37.0](https://github.com/googleapis/go-genai/compare/v1.36.0...v1.37.0) (2025-12-02)
 
 
