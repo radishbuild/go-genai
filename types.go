@@ -744,6 +744,7 @@ const (
 	FileSourceUnspecified FileSource = "SOURCE_UNSPECIFIED"
 	FileSourceUploaded    FileSource = "UPLOADED"
 	FileSourceGenerated   FileSource = "GENERATED"
+	FileSourceRegistered  FileSource = "REGISTERED"
 )
 
 // The reason why the turn is complete.
@@ -788,6 +789,18 @@ const (
 	VADSignalTypeSos VADSignalType = "VAD_SIGNAL_TYPE_SOS"
 	// End of sentence signal.
 	VADSignalTypeEos VADSignalType = "VAD_SIGNAL_TYPE_EOS"
+)
+
+// The type of the voice activity signal.
+type VoiceActivityType string
+
+const (
+	// The default is VOICE_ACTIVITY_TYPE_UNSPECIFIED.
+	VoiceActivityTypeUnspecified VoiceActivityType = "TYPE_UNSPECIFIED"
+	// Start of sentence signal.
+	VoiceActivityTypeActivityStart VoiceActivityType = "ACTIVITY_START"
+	// End of sentence signal.
+	VoiceActivityTypeActivityEnd VoiceActivityType = "ACTIVITY_END"
 )
 
 // Start of speech sensitivity.
@@ -3295,7 +3308,7 @@ type EntityLabel struct {
 	// Optional. The label of the segmented entity.
 	Label string `json:"label,omitempty"`
 	// Optional. The confidence score of the detected label.
-	Score float32 `json:"score,ommitempty,string"`
+	Score float32 `json:"score,omitempty,string"`
 }
 
 // A generated image mask.
@@ -6029,6 +6042,12 @@ type VoiceActivityDetectionSignal struct {
 	VADSignalType VADSignalType `json:"vadSignalType,omitempty"`
 }
 
+// Voice activity signal.
+type VoiceActivity struct {
+	// Optional. The type of the voice activity signal.
+	VoiceActivityType VoiceActivityType `json:"voiceActivityType,omitempty"`
+}
+
 // Response message for API call.
 type LiveServerMessage struct {
 	// Optional. Sent in response to a `LiveClientSetup` message from the client.
@@ -6047,8 +6066,10 @@ type LiveServerMessage struct {
 	GoAway *LiveServerGoAway `json:"goAway,omitempty"`
 	// Optional. Update of the session resumption state.
 	SessionResumptionUpdate *LiveServerSessionResumptionUpdate `json:"sessionResumptionUpdate,omitempty"`
-	// Optional. Voice activity detection signal.
+	// Optional. Voice activity detection signal. Allowlisted only.
 	VoiceActivityDetectionSignal *VoiceActivityDetectionSignal `json:"voiceActivityDetectionSignal,omitempty"`
+	// Optional. Voice activity signal.
+	VoiceActivity *VoiceActivity `json:"voiceActivity,omitempty"`
 }
 
 // Configures automatic detection of activity.
