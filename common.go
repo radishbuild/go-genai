@@ -349,6 +349,36 @@ func deepMarshal(input any, output *map[string]any) error {
 	return nil
 }
 
+func marshalToMap(input any) (map[string]any, error) {
+	if input == nil {
+		return nil, nil
+	}
+	b, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("marshalToMap: unable to marshal input: %w", err)
+	}
+	var result map[string]any
+	if err := json.Unmarshal(b, &result); err != nil {
+		return nil, fmt.Errorf("marshalToMap: unable to unmarshal input: %w", err)
+	}
+	return result, nil
+}
+
+func marshalSliceToMaps[T any](input []*T) ([]any, error) {
+	if input == nil {
+		return nil, nil
+	}
+	var result []any
+	for _, item := range input {
+		m, err := marshalToMap(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, m)
+	}
+	return result, nil
+}
+
 func deepCopy[T any](original T, copied *T) error {
 	bytes, err := json.Marshal(original)
 	if err != nil {

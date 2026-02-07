@@ -116,27 +116,30 @@ func citationMetadataFromMldev(fromObject map[string]any, parentObject map[strin
 	return toObject, nil
 }
 
-func computeTokensParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func computeTokensParametersToVertex(ac *apiClient, model string, contents []*Content) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err := tContents(contentMaps)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
 	return toObject, nil
@@ -286,37 +289,44 @@ func countTokensConfigToVertex(fromObject map[string]any, parentObject map[strin
 	return toObject, nil
 }
 
-func countTokensParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func countTokensParametersToMldev(ac *apiClient, model string, contents []*Content, config *CountTokensConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		fromContents, err = applyConverterToSliceWithRoot(fromContents.([]any), contentToMldev, rootObject)
+		convertedContents, err := tContents(contentMaps)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err = applyConverterToSliceWithRoot(convertedContents.([]any), contentToMldev, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = countTokensConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = countTokensConfigToMldev(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -325,32 +335,39 @@ func countTokensParametersToMldev(ac *apiClient, fromObject map[string]any, pare
 	return toObject, nil
 }
 
-func countTokensParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func countTokensParametersToVertex(ac *apiClient, model string, contents []*Content, config *CountTokensConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err := tContents(contentMaps)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = countTokensConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = countTokensConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -396,33 +413,31 @@ func countTokensResponseFromVertex(fromObject map[string]any, parentObject map[s
 	return toObject, nil
 }
 
-func deleteModelParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func deleteModelParametersToMldev(ac *apiClient, model string) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "name"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "name"}, transformedModel)
 	}
 
 	return toObject, nil
 }
 
-func deleteModelParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func deleteModelParametersToVertex(ac *apiClient, model string) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "name"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "name"}, transformedModel)
 	}
 
 	return toObject, nil
@@ -541,37 +556,43 @@ func editImageConfigToVertex(fromObject map[string]any, parentObject map[string]
 	return toObject, nil
 }
 
-func editImageParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func editImageParametersToVertex(ac *apiClient, model string, prompt string, referenceImages []*referenceImageAPI, config *EditImageConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromPrompt := getValueByPath(fromObject, []string{"prompt"})
-	if fromPrompt != nil {
-		setValueByPath(toObject, []string{"instances[0]", "prompt"}, fromPrompt)
+	if prompt != "" {
+		setValueByPath(toObject, []string{"instances[0]", "prompt"}, prompt)
 	}
 
-	fromReferenceImages := getValueByPath(fromObject, []string{"referenceImages"})
-	if fromReferenceImages != nil {
-		fromReferenceImages, err = applyConverterToSliceWithRoot(fromReferenceImages.([]any), referenceImageAPIToVertex, rootObject)
+	if referenceImages != nil {
+		refImageMaps, err := marshalSliceToMaps(referenceImages)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "referenceImages"}, fromReferenceImages)
+		convertedRefImages, err := applyConverterToSliceWithRoot(refImageMaps, referenceImageAPIToVertex, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"instances[0]", "referenceImages"}, convertedRefImages)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = editImageConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = editImageConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -661,68 +682,83 @@ func embedContentConfigToVertex(fromObject map[string]any, parentObject map[stri
 	return toObject, nil
 }
 
-func embedContentParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func embedContentParametersToMldev(ac *apiClient, model string, contents []*Content, config *EmbedContentConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	var transformedModel any
+	if model != "" {
+		transformedModel, err = tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContentsForEmbed(ac, fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"requests[]", "content"}, fromContents)
+		convertedContents, err := tContentsForEmbed(ac, contentMaps)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"requests[]", "content"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = embedContentConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = embedContentConfigToMldev(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	setValueByPath(toObject, []string{"requests[]", "model"}, fromModel)
+	setValueByPath(toObject, []string{"requests[]", "model"}, transformedModel)
 
 	return toObject, nil
 }
 
-func embedContentParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func embedContentParametersToVertex(ac *apiClient, model string, contents []*Content, config *EmbedContentConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContentsForEmbed(ac, fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[]", "content"}, fromContents)
+		convertedContents, err := tContentsForEmbed(ac, contentMaps)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"instances[]", "content"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = embedContentConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = embedContentConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -1303,78 +1339,92 @@ func generateContentConfigToVertex(ac *apiClient, fromObject map[string]any, par
 	return toObject, nil
 }
 
-func generateContentParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateContentParametersToMldev(ac *apiClient, model string, contents []*Content, config *GenerateContentConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		fromContents, err = applyConverterToSliceWithRoot(fromContents.([]any), contentToMldev, rootObject)
+		convertedContents, err := tContents(contentMaps)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err = applyConverterToSliceWithRoot(convertedContents.([]any), contentToMldev, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		fromConfig, err = generateContentConfigToMldev(ac, fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"generationConfig"}, fromConfig)
+		convertedConfig, err := generateContentConfigToMldev(ac, configMap, toObject, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"generationConfig"}, convertedConfig)
 	}
 
 	return toObject, nil
 }
 
-func generateContentParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateContentParametersToVertex(ac *apiClient, model string, contents []*Content, config *GenerateContentConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromContents := getValueByPath(fromObject, []string{"contents"})
-	if fromContents != nil {
-		fromContents, err = tContents(fromContents)
+	if contents != nil {
+		contentMaps, err := marshalSliceToMaps(contents)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"contents"}, fromContents)
+		convertedContents, err := tContents(contentMaps)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"contents"}, convertedContents)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		fromConfig, err = generateContentConfigToVertex(ac, fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"generationConfig"}, fromConfig)
+		convertedConfig, err := generateContentConfigToVertex(ac, configMap, toObject, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"generationConfig"}, convertedConfig)
 	}
 
 	return toObject, nil
@@ -1638,27 +1688,29 @@ func generateImagesConfigToVertex(fromObject map[string]any, parentObject map[st
 	return toObject, nil
 }
 
-func generateImagesParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateImagesParametersToMldev(ac *apiClient, model string, prompt string, config *GenerateImagesConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromPrompt := getValueByPath(fromObject, []string{"prompt"})
-	if fromPrompt != nil {
-		setValueByPath(toObject, []string{"instances[0]", "prompt"}, fromPrompt)
+	if prompt != "" {
+		setValueByPath(toObject, []string{"instances[0]", "prompt"}, prompt)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = generateImagesConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateImagesConfigToMldev(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -1667,27 +1719,29 @@ func generateImagesParametersToMldev(ac *apiClient, fromObject map[string]any, p
 	return toObject, nil
 }
 
-func generateImagesParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateImagesParametersToVertex(ac *apiClient, model string, prompt string, config *GenerateImagesConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromPrompt := getValueByPath(fromObject, []string{"prompt"})
-	if fromPrompt != nil {
-		setValueByPath(toObject, []string{"instances[0]", "prompt"}, fromPrompt)
+	if prompt != "" {
+		setValueByPath(toObject, []string{"instances[0]", "prompt"}, prompt)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = generateImagesConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateImagesConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -2020,55 +2074,69 @@ func generateVideosOperationFromVertex(fromObject map[string]any, parentObject m
 	return toObject, nil
 }
 
-func generateVideosParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateVideosParametersToMldev(ac *apiClient, model string, prompt *string, image *Image, video *Video, source *GenerateVideosSource, config *GenerateVideosConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromPrompt := getValueByPath(fromObject, []string{"prompt"})
-	if fromPrompt != nil {
-		setValueByPath(toObject, []string{"instances[0]", "prompt"}, fromPrompt)
+	if prompt != nil {
+		setValueByPath(toObject, []string{"instances[0]", "prompt"}, *prompt)
 	}
 
-	fromImage := getValueByPath(fromObject, []string{"image"})
-	if fromImage != nil {
-		fromImage, err = imageToMldev(fromImage.(map[string]any), toObject, rootObject)
+	if image != nil {
+		imageMap, err := marshalToMap(image)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "image"}, fromImage)
-	}
-
-	fromVideo := getValueByPath(fromObject, []string{"video"})
-	if fromVideo != nil {
-		fromVideo, err = videoToMldev(fromVideo.(map[string]any), toObject, rootObject)
+		convertedImage, err := imageToMldev(imageMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "video"}, fromVideo)
+		setValueByPath(toObject, []string{"instances[0]", "image"}, convertedImage)
 	}
 
-	fromSource := getValueByPath(fromObject, []string{"source"})
-	if fromSource != nil {
-		_, err = generateVideosSourceToMldev(fromSource.(map[string]any), toObject, rootObject)
+	if video != nil {
+		videoMap, err := marshalToMap(video)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedVideo, err := videoToMldev(videoMap, toObject, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"instances[0]", "video"}, convertedVideo)
+	}
+
+	if source != nil {
+		sourceMap, err := marshalToMap(source)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateVideosSourceToMldev(sourceMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = generateVideosConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateVideosConfigToMldev(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -2077,55 +2145,69 @@ func generateVideosParametersToMldev(ac *apiClient, fromObject map[string]any, p
 	return toObject, nil
 }
 
-func generateVideosParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func generateVideosParametersToVertex(ac *apiClient, model string, prompt *string, image *Image, video *Video, source *GenerateVideosSource, config *GenerateVideosConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromPrompt := getValueByPath(fromObject, []string{"prompt"})
-	if fromPrompt != nil {
-		setValueByPath(toObject, []string{"instances[0]", "prompt"}, fromPrompt)
+	if prompt != nil {
+		setValueByPath(toObject, []string{"instances[0]", "prompt"}, *prompt)
 	}
 
-	fromImage := getValueByPath(fromObject, []string{"image"})
-	if fromImage != nil {
-		fromImage, err = imageToVertex(fromImage.(map[string]any), toObject, rootObject)
+	if image != nil {
+		imageMap, err := marshalToMap(image)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "image"}, fromImage)
-	}
-
-	fromVideo := getValueByPath(fromObject, []string{"video"})
-	if fromVideo != nil {
-		fromVideo, err = videoToVertex(fromVideo.(map[string]any), toObject, rootObject)
+		convertedImage, err := imageToVertex(imageMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "video"}, fromVideo)
+		setValueByPath(toObject, []string{"instances[0]", "image"}, convertedImage)
 	}
 
-	fromSource := getValueByPath(fromObject, []string{"source"})
-	if fromSource != nil {
-		_, err = generateVideosSourceToVertex(fromSource.(map[string]any), toObject, rootObject)
+	if video != nil {
+		videoMap, err := marshalToMap(video)
+		if err != nil {
+			return nil, err
+		}
+
+		convertedVideo, err := videoToVertex(videoMap, toObject, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"instances[0]", "video"}, convertedVideo)
+	}
+
+	if source != nil {
+		sourceMap, err := marshalToMap(source)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateVideosSourceToVertex(sourceMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = generateVideosConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = generateVideosConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -2488,33 +2570,31 @@ func generationConfigToVertex(fromObject map[string]any, parentObject map[string
 	return toObject, nil
 }
 
-func getModelParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func getModelParametersToMldev(ac *apiClient, model string) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "name"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "name"}, transformedModel)
 	}
 
 	return toObject, nil
 }
 
-func getModelParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func getModelParametersToVertex(ac *apiClient, model string) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "name"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "name"}, transformedModel)
 	}
 
 	return toObject, nil
@@ -2770,12 +2850,16 @@ func listModelsConfigToVertex(ac *apiClient, fromObject map[string]any, parentOb
 	return toObject, nil
 }
 
-func listModelsParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func listModelsParametersToMldev(ac *apiClient, config *ListModelsConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = listModelsConfigToMldev(ac, fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = listModelsConfigToMldev(ac, configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -2784,12 +2868,16 @@ func listModelsParametersToMldev(ac *apiClient, fromObject map[string]any, paren
 	return toObject, nil
 }
 
-func listModelsParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func listModelsParametersToVertex(ac *apiClient, config *ListModelsConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = listModelsConfigToVertex(ac, fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = listModelsConfigToVertex(ac, configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -3166,30 +3254,37 @@ func recontextImageConfigToVertex(fromObject map[string]any, parentObject map[st
 	return toObject, nil
 }
 
-func recontextImageParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func recontextImageParametersToVertex(ac *apiClient, model string, source *RecontextImageSource, config *RecontextImageConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromSource := getValueByPath(fromObject, []string{"source"})
-	if fromSource != nil {
-		_, err = recontextImageSourceToVertex(fromSource.(map[string]any), toObject, rootObject)
+	if source != nil {
+		sourceMap, err := marshalToMap(source)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = recontextImageSourceToVertex(sourceMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = recontextImageConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = recontextImageConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -3415,30 +3510,37 @@ func segmentImageConfigToVertex(fromObject map[string]any, parentObject map[stri
 	return toObject, nil
 }
 
-func segmentImageParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func segmentImageParametersToVertex(ac *apiClient, model string, source *SegmentImageSource, config *SegmentImageConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromSource := getValueByPath(fromObject, []string{"source"})
-	if fromSource != nil {
-		_, err = segmentImageSourceToVertex(fromSource.(map[string]any), toObject, rootObject)
+	if source != nil {
+		sourceMap, err := marshalToMap(source)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = segmentImageSourceToVertex(sourceMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = segmentImageConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = segmentImageConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -3701,22 +3803,25 @@ func updateModelConfigToVertex(fromObject map[string]any, parentObject map[strin
 	return toObject, nil
 }
 
-func updateModelParametersToMldev(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func updateModelParametersToMldev(ac *apiClient, model string, config *UpdateModelConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "name"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "name"}, transformedModel)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = updateModelConfigToMldev(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = updateModelConfigToMldev(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -3725,22 +3830,25 @@ func updateModelParametersToMldev(ac *apiClient, fromObject map[string]any, pare
 	return toObject, nil
 }
 
-func updateModelParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func updateModelParametersToVertex(ac *apiClient, model string, config *UpdateModelConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = updateModelConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = updateModelConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -3810,37 +3918,43 @@ func upscaleImageAPIConfigToVertex(fromObject map[string]any, parentObject map[s
 	return toObject, nil
 }
 
-func upscaleImageAPIParametersToVertex(ac *apiClient, fromObject map[string]any, parentObject map[string]any, rootObject map[string]any) (toObject map[string]any, err error) {
+func upscaleImageAPIParametersToVertex(ac *apiClient, model string, image *Image, upscaleFactor string, config *upscaleImageAPIConfig) (toObject map[string]any, err error) {
 	toObject = make(map[string]any)
 
-	fromModel := getValueByPath(fromObject, []string{"model"})
-	if fromModel != nil {
-		fromModel, err = tModel(ac, fromModel)
+	if model != "" {
+		transformedModel, err := tModel(ac, model)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"_url", "model"}, fromModel)
+		setValueByPath(toObject, []string{"_url", "model"}, transformedModel)
 	}
 
-	fromImage := getValueByPath(fromObject, []string{"image"})
-	if fromImage != nil {
-		fromImage, err = imageToVertex(fromImage.(map[string]any), toObject, rootObject)
+	if image != nil {
+		imageMap, err := marshalToMap(image)
 		if err != nil {
 			return nil, err
 		}
 
-		setValueByPath(toObject, []string{"instances[0]", "image"}, fromImage)
+		convertedImage, err := imageToVertex(imageMap, toObject, toObject)
+		if err != nil {
+			return nil, err
+		}
+
+		setValueByPath(toObject, []string{"instances[0]", "image"}, convertedImage)
 	}
 
-	fromUpscaleFactor := getValueByPath(fromObject, []string{"upscaleFactor"})
-	if fromUpscaleFactor != nil {
-		setValueByPath(toObject, []string{"parameters", "upscaleConfig", "upscaleFactor"}, fromUpscaleFactor)
+	if upscaleFactor != "" {
+		setValueByPath(toObject, []string{"parameters", "upscaleConfig", "upscaleFactor"}, upscaleFactor)
 	}
 
-	fromConfig := getValueByPath(fromObject, []string{"config"})
-	if fromConfig != nil {
-		_, err = upscaleImageAPIConfigToVertex(fromConfig.(map[string]any), toObject, rootObject)
+	if config != nil {
+		configMap, err := marshalToMap(config)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = upscaleImageAPIConfigToVertex(configMap, toObject, toObject)
 		if err != nil {
 			return nil, err
 		}
@@ -4045,11 +4159,6 @@ type Models struct {
 }
 
 func (m Models) generateContent(ctx context.Context, model string, contents []*Content, config *GenerateContentConfig) (*GenerateContentResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4062,16 +4171,15 @@ func (m Models) generateContent(ctx context.Context, model string, contents []*C
 	var response = new(GenerateContentResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateContentParametersToVertex
+		body, err = generateContentParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromVertex
 	} else {
-		toConverter = generateContentParametersToMldev
+		body, err = generateContentParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4102,7 +4210,7 @@ func (m Models) generateContent(ctx context.Context, model string, contents []*C
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4116,11 +4224,6 @@ func (m Models) generateContent(ctx context.Context, model string, contents []*C
 }
 
 func (m Models) generateContentStream(ctx context.Context, model string, contents []*Content, config *GenerateContentConfig) iter.Seq2[*GenerateContentResponse, error] {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4132,16 +4235,15 @@ func (m Models) generateContentStream(ctx context.Context, model string, content
 	}
 	var rs responseStream[GenerateContentResponse]
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateContentParametersToVertex
+		body, err = generateContentParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromVertex
 	} else {
-		toConverter = generateContentParametersToMldev
+		body, err = generateContentParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = generateContentResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return yieldErrorAndEndIterator[GenerateContentResponse](err)
 	}
@@ -4166,7 +4268,7 @@ func (m Models) generateContentStream(ctx context.Context, model string, content
 		return yieldErrorAndEndIterator[GenerateContentResponse](err)
 	}
 	return iterateResponseStream(&rs, func(responseMap map[string]any) (*GenerateContentResponse, error) {
-		responseMap, err := fromConverter(responseMap, nil, parameterMap)
+		responseMap, err := fromConverter(responseMap, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -4181,11 +4283,6 @@ func (m Models) generateContentStream(ctx context.Context, model string, content
 
 // EmbedContent generates embeddings for the provided contents using the specified model.
 func (m Models) EmbedContent(ctx context.Context, model string, contents []*Content, config *EmbedContentConfig) (*EmbedContentResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4198,16 +4295,15 @@ func (m Models) EmbedContent(ctx context.Context, model string, contents []*Cont
 	var response = new(EmbedContentResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = embedContentParametersToVertex
+		body, err = embedContentParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = embedContentResponseFromVertex
 	} else {
-		toConverter = embedContentParametersToMldev
+		body, err = embedContentParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = embedContentResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4238,7 +4334,7 @@ func (m Models) EmbedContent(ctx context.Context, model string, contents []*Cont
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4253,11 +4349,6 @@ func (m Models) EmbedContent(ctx context.Context, model string, contents []*Cont
 
 // generateImages private method for generating images.
 func (m Models) generateImages(ctx context.Context, model string, prompt string, config *GenerateImagesConfig) (*GenerateImagesResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "prompt": prompt, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4270,16 +4361,15 @@ func (m Models) generateImages(ctx context.Context, model string, prompt string,
 	var response = new(GenerateImagesResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateImagesParametersToVertex
+		body, err = generateImagesParametersToVertex(m.apiClient, model, prompt, config)
 		fromConverter = generateImagesResponseFromVertex
 	} else {
-		toConverter = generateImagesParametersToMldev
+		body, err = generateImagesParametersToMldev(m.apiClient, model, prompt, config)
 		fromConverter = generateImagesResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4310,7 +4400,7 @@ func (m Models) generateImages(ctx context.Context, model string, prompt string,
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4325,11 +4415,6 @@ func (m Models) generateImages(ctx context.Context, model string, prompt string,
 
 // editImage private method for editing an image.
 func (m Models) editImage(ctx context.Context, model string, prompt string, referenceImages []*referenceImageAPI, config *EditImageConfig) (*EditImageResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "prompt": prompt, "referenceImages": referenceImages, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4342,17 +4427,16 @@ func (m Models) editImage(ctx context.Context, model string, prompt string, refe
 	var response = new(EditImageResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = editImageParametersToVertex
+		body, err = editImageParametersToVertex(m.apiClient, model, prompt, referenceImages, config)
 		fromConverter = editImageResponseFromVertex
 	} else {
 
 		return nil, fmt.Errorf("method EditImage is only supported in the Vertex AI client. You can choose to use Vertex AI by setting ClientConfig.Backend to BackendVertexAI.")
 
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4383,7 +4467,7 @@ func (m Models) editImage(ctx context.Context, model string, prompt string, refe
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4398,11 +4482,6 @@ func (m Models) editImage(ctx context.Context, model string, prompt string, refe
 
 // upscaleImage private method for upscaling an image.
 func (m Models) upscaleImage(ctx context.Context, model string, image *Image, upscaleFactor string, config *upscaleImageAPIConfig) (*UpscaleImageResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "image": image, "upscaleFactor": upscaleFactor, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4415,17 +4494,16 @@ func (m Models) upscaleImage(ctx context.Context, model string, image *Image, up
 	var response = new(UpscaleImageResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = upscaleImageAPIParametersToVertex
+		body, err = upscaleImageAPIParametersToVertex(m.apiClient, model, image, upscaleFactor, config)
 		fromConverter = upscaleImageResponseFromVertex
 	} else {
 
 		return nil, fmt.Errorf("method UpscaleImage is only supported in the Vertex AI client. You can choose to use Vertex AI by setting ClientConfig.Backend to BackendVertexAI.")
 
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4456,7 +4534,7 @@ func (m Models) upscaleImage(ctx context.Context, model string, image *Image, up
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4475,11 +4553,6 @@ func (m Models) upscaleImage(ctx context.Context, model string, image *Image, up
 // and contexts.
 // 2) Virtual Try-On: Generate images of persons modeling fashion products.
 func (m Models) RecontextImage(ctx context.Context, model string, source *RecontextImageSource, config *RecontextImageConfig) (*RecontextImageResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "source": source, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4492,17 +4565,16 @@ func (m Models) RecontextImage(ctx context.Context, model string, source *Recont
 	var response = new(RecontextImageResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = recontextImageParametersToVertex
+		body, err = recontextImageParametersToVertex(m.apiClient, model, source, config)
 		fromConverter = recontextImageResponseFromVertex
 	} else {
 
 		return nil, fmt.Errorf("method RecontextImage is only supported in the Vertex AI client. You can choose to use Vertex AI by setting ClientConfig.Backend to BackendVertexAI.")
 
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4533,7 +4605,7 @@ func (m Models) RecontextImage(ctx context.Context, model string, source *Recont
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4558,11 +4630,6 @@ func (m Models) RecontextImage(ctx context.Context, model string, source *Recont
 
 // SegmentImage segments an image, creating a mask of a specified area.
 func (m Models) SegmentImage(ctx context.Context, model string, source *SegmentImageSource, config *SegmentImageConfig) (*SegmentImageResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "source": source, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4575,17 +4642,16 @@ func (m Models) SegmentImage(ctx context.Context, model string, source *SegmentI
 	var response = new(SegmentImageResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = segmentImageParametersToVertex
+		body, err = segmentImageParametersToVertex(m.apiClient, model, source, config)
 		fromConverter = segmentImageResponseFromVertex
 	} else {
 
 		return nil, fmt.Errorf("method SegmentImage is only supported in the Vertex AI client. You can choose to use Vertex AI by setting ClientConfig.Backend to BackendVertexAI.")
 
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4616,7 +4682,7 @@ func (m Models) SegmentImage(ctx context.Context, model string, source *SegmentI
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4641,11 +4707,6 @@ func (m Models) SegmentImage(ctx context.Context, model string, source *SegmentI
 
 // Get retrieves a specific model resource by its name.
 func (m Models) Get(ctx context.Context, model string, config *GetModelConfig) (*Model, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4658,16 +4719,15 @@ func (m Models) Get(ctx context.Context, model string, config *GetModelConfig) (
 	var response = new(Model)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = getModelParametersToVertex
+		body, err = getModelParametersToVertex(m.apiClient, model)
 		fromConverter = modelFromVertex
 	} else {
-		toConverter = getModelParametersToMldev
+		body, err = getModelParametersToMldev(m.apiClient, model)
 		fromConverter = modelFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4698,7 +4758,7 @@ func (m Models) Get(ctx context.Context, model string, config *GetModelConfig) (
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4722,11 +4782,6 @@ func (m Models) Get(ctx context.Context, model string, config *GetModelConfig) (
 }
 
 func (m Models) list(ctx context.Context, config *ListModelsConfig) (*ListModelsResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4739,16 +4794,15 @@ func (m Models) list(ctx context.Context, config *ListModelsConfig) (*ListModels
 	var response = new(ListModelsResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = listModelsParametersToVertex
+		body, err = listModelsParametersToVertex(m.apiClient, config)
 		fromConverter = listModelsResponseFromVertex
 	} else {
-		toConverter = listModelsParametersToMldev
+		body, err = listModelsParametersToMldev(m.apiClient, config)
 		fromConverter = listModelsResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4792,7 +4846,7 @@ func (m Models) list(ctx context.Context, config *ListModelsConfig) (*ListModels
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4807,11 +4861,6 @@ func (m Models) list(ctx context.Context, config *ListModelsConfig) (*ListModels
 
 // Update updates a specific model resource.
 func (m Models) Update(ctx context.Context, model string, config *UpdateModelConfig) (*Model, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4824,16 +4873,15 @@ func (m Models) Update(ctx context.Context, model string, config *UpdateModelCon
 	var response = new(Model)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = updateModelParametersToVertex
+		body, err = updateModelParametersToVertex(m.apiClient, model, config)
 		fromConverter = modelFromVertex
 	} else {
-		toConverter = updateModelParametersToMldev
+		body, err = updateModelParametersToMldev(m.apiClient, model, config)
 		fromConverter = modelFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4864,7 +4912,7 @@ func (m Models) Update(ctx context.Context, model string, config *UpdateModelCon
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4889,11 +4937,6 @@ func (m Models) Update(ctx context.Context, model string, config *UpdateModelCon
 
 // Delete deletes a specific model resource by its name.
 func (m Models) Delete(ctx context.Context, model string, config *DeleteModelConfig) (*DeleteModelResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4906,16 +4949,15 @@ func (m Models) Delete(ctx context.Context, model string, config *DeleteModelCon
 	var response = new(DeleteModelResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = deleteModelParametersToVertex
+		body, err = deleteModelParametersToVertex(m.apiClient, model)
 		fromConverter = deleteModelResponseFromVertex
 	} else {
-		toConverter = deleteModelParametersToMldev
+		body, err = deleteModelParametersToMldev(m.apiClient, model)
 		fromConverter = deleteModelResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -4946,7 +4988,7 @@ func (m Models) Delete(ctx context.Context, model string, config *DeleteModelCon
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -4961,11 +5003,6 @@ func (m Models) Delete(ctx context.Context, model string, config *DeleteModelCon
 
 // CountTokens counts the number of tokens in the provided contents.
 func (m Models) CountTokens(ctx context.Context, model string, contents []*Content, config *CountTokensConfig) (*CountTokensResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -4978,16 +5015,15 @@ func (m Models) CountTokens(ctx context.Context, model string, contents []*Conte
 	var response = new(CountTokensResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = countTokensParametersToVertex
+		body, err = countTokensParametersToVertex(m.apiClient, model, contents, config)
 		fromConverter = countTokensResponseFromVertex
 	} else {
-		toConverter = countTokensParametersToMldev
+		body, err = countTokensParametersToMldev(m.apiClient, model, contents, config)
 		fromConverter = countTokensResponseFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -5018,7 +5054,7 @@ func (m Models) CountTokens(ctx context.Context, model string, contents []*Conte
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -5033,11 +5069,6 @@ func (m Models) CountTokens(ctx context.Context, model string, contents []*Conte
 
 // ComputeTokens computes the number of tokens for the provided contents.
 func (m Models) ComputeTokens(ctx context.Context, model string, contents []*Content, config *ComputeTokensConfig) (*ComputeTokensResponse, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "contents": contents, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -5050,17 +5081,16 @@ func (m Models) ComputeTokens(ctx context.Context, model string, contents []*Con
 	var response = new(ComputeTokensResponse)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = computeTokensParametersToVertex
+		body, err = computeTokensParametersToVertex(m.apiClient, model, contents)
 		fromConverter = computeTokensResponseFromVertex
 	} else {
 
 		return nil, fmt.Errorf("method ComputeTokens is only supported in the Vertex AI client. You can choose to use Vertex AI by setting ClientConfig.Backend to BackendVertexAI.")
 
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -5091,7 +5121,7 @@ func (m Models) ComputeTokens(ctx context.Context, model string, contents []*Con
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -5106,11 +5136,6 @@ func (m Models) ComputeTokens(ctx context.Context, model string, contents []*Con
 
 // generateVideos private method for generating videos.
 func (m Models) generateVideos(ctx context.Context, model string, prompt *string, image *Image, video *Video, source *GenerateVideosSource, config *GenerateVideosConfig) (*GenerateVideosOperation, error) {
-	parameterMap := make(map[string]any)
-
-	kwargs := map[string]any{"model": model, "prompt": prompt, "image": image, "video": video, "source": source, "config": config}
-	deepMarshal(kwargs, &parameterMap)
-
 	var httpOptions *HTTPOptions
 	if config == nil || config.HTTPOptions == nil {
 		httpOptions = &HTTPOptions{}
@@ -5123,16 +5148,15 @@ func (m Models) generateVideos(ctx context.Context, model string, prompt *string
 	var response = new(GenerateVideosOperation)
 	var responseMap map[string]any
 	var fromConverter func(map[string]any, map[string]any, map[string]any) (map[string]any, error)
-	var toConverter func(*apiClient, map[string]any, map[string]any, map[string]any) (map[string]any, error)
+	var body map[string]any
+	var err error
 	if m.apiClient.clientConfig.Backend == BackendVertexAI {
-		toConverter = generateVideosParametersToVertex
+		body, err = generateVideosParametersToVertex(m.apiClient, model, prompt, image, video, source, config)
 		fromConverter = generateVideosOperationFromVertex
 	} else {
-		toConverter = generateVideosParametersToMldev
+		body, err = generateVideosParametersToMldev(m.apiClient, model, prompt, image, video, source, config)
 		fromConverter = generateVideosOperationFromMldev
 	}
-
-	body, err := toConverter(m.apiClient, parameterMap, nil, parameterMap)
 	if err != nil {
 		return nil, err
 	}
@@ -5163,7 +5187,7 @@ func (m Models) generateVideos(ctx context.Context, model string, prompt *string
 		return nil, err
 	}
 	if fromConverter != nil {
-		responseMap, err = fromConverter(responseMap, nil, parameterMap)
+		responseMap, err = fromConverter(responseMap, nil, nil)
 	}
 	if err != nil {
 		return nil, err
